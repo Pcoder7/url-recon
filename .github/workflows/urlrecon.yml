@@ -135,7 +135,7 @@ jobs:
         if: steps.compare_urls.outputs.has_new_urls == 'true'
         run: |
             DATE=$(date +"%d-%m-%Y")
-            FILE="results/${{ matrix.domain }}/urls/all_filtered.txt"
+            FILE="results/${DOMAIN}/urls/new_urls.txt"
             COUNT=$(wc -l < "$FILE")
       
             # Send file if >50, else one bulk message
