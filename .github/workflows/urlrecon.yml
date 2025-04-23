@@ -52,18 +52,22 @@ jobs:
             DOMAIN="${{ matrix.domain }}"
             OUTDIR="results/${DOMAIN}/urls"
             mkdir -p "$OUTDIR"
+            BLACKLIST_EXT=".css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,\
+                           .mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,\
+                           .tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
       
             # Install URL enumeration tools
             go install github.com/tomnomnom/waybackurls@latest
             go install github.com/lc/gau/v2/cmd/gau@latest
             pip install waymore
+            pip install urless
             pipx install uro
       
             # 1. Waybackurls: archived URLs
             waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
       
             # 2. gau: combined source URLs, filter out images
-            gau --subs --blacklist png,jpg,gif --o "$OUTDIR/gau.txt" "$DOMAIN"
+            gau --subs --blacklist "$BLACKLIST_EXT" --providers wayback,commoncrawl,otx --o "$OUTDIR/gau.txt" "$DOMAIN"
       
             # 3. waymore: deep crawl with archive mode U
             waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
@@ -74,13 +78,20 @@ jobs:
       
             # 5. Filter image and js extensions, then select only URLs with parameters
             cat "$OUTDIR/all_urls.txt" \
-                | uro --filters hasparams -b jpg,png,gif,js,css,jpeg,bak -o "$OUTDIR/parameterized_urls.txt"
+                | uro --filters hasparams -b "$BLACKLIST_EXT" -o "$OUTDIR/parameterized_urls.txt"
+                
+           
+          # 6. Further clean with urless (drop blogs, JS libs, etc.) 
+            cat "$OUTDIR/parameterized_urls.txt" \
+            | urless -fk blog,article,news,bootstrap,jquery,captcha,node_modules \
+                    -lang -nb \
+                    -o "$OUTDIR/all_filtered.txt"    
       
       # Compare & Alert on New URLs
       - name: Compare & Alert on New URLs for ${{ matrix.domain }}
         id: compare_urls
         run: |
-            NEW="results/${{ matrix.domain }}/urls/parameterized_urls.txt"
+            NEW="results/${{ matrix.domain }}/urls/all_filtered.txt"
             OLD=$(mktemp)
             git show HEAD:$NEW 2>/dev/null | sort -u > "$OLD" || touch "$OLD"
             sort -u "$NEW" > "${NEW}.sorted"
@@ -126,7 +137,7 @@ jobs:
         if: steps.compare_urls.outputs.has_new_urls == 'true'
         run: |
             DATE=$(date +"%d-%m-%Y")
-            FILE="results/${{ matrix.domain }}/urls/new_urls.txt"
+            FILE="results/${{ matrix.domain }}/urls/all_filtered.txt"
             COUNT=$(wc -l < "$FILE")
       
             # Send file if >50, else one bulk message
