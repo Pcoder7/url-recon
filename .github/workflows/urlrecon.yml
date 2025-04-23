@@ -164,7 +164,26 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
           
+            #  Notify Discord for each pattern if there are findings
+      - name: Notify Discord: vulnerability params for ${{ matrix.domain }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
+        run: |
+          DOMAIN="${{ matrix.domain }}"
+          DATE=$(date +"%d-%m-%Y")
+          BASE="results/${DOMAIN}/urls"
 
+           # loop over each pattern's file
+          for PAT in ssrf sqli lfi debug_logic idor; do
+            FILE="$BASE/${PAT}_params.txt"
+            if [ -s "$FILE" ]; then
+              # header for this pattern
+              echo -e "🔔 New ${PAT^^} parameters for ${DOMAIN}\n📅 Date: ${DATE}" \
+                | notify -id fuzz
+              # attach the findings file
+              notify -bulk -id fuzz -data "$FILE"
+            fi
+          done
       
       - name: Notify Discord of New URLs for ${{ matrix.domain }}
         if: steps.compare_urls.outputs.has_new_urls == 'true'
@@ -191,23 +210,4 @@ jobs:
               } | notify -bulk -id fuzz
             fi
 
-            #  Notify Discord for each pattern if there are findings
-      - name: Notify Discord: vulnerability params for ${{ matrix.domain }}
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
-        run: |
-          DOMAIN="${{ matrix.domain }}"
-          DATE=$(date +"%d-%m-%Y")
-          BASE="results/${DOMAIN}/urls"
 
-           # loop over each pattern's file
-          for PAT in ssrf sqli lfi debug_logic idor; do
-            FILE="$BASE/${PAT}_params.txt"
-            if [ -s "$FILE" ]; then
-              # header for this pattern
-              echo -e "🔔 New ${PAT^^} parameters for ${DOMAIN}\n📅 Date: ${DATE}" \
-                | notify -id fuzz
-              # attach the findings file
-              notify -bulk -id fuzz -data "$FILE"
-            fi
-          done
