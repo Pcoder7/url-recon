@@ -138,6 +138,13 @@ jobs:
           git pull --rebase origin main || echo "Up to date"
           git push || echo "Push failed or nothing to push"            
 
+      - name: Upload filtered URLs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: filtered-urls-${{ matrix.domain }}
+          path: results/${{ matrix.domain }}/urls/all_filtered.txt
+          retention-days: 4
+
       # ─── Install gf & pattern files ──────────────────────────────────────
       - name: Install gf and Gf-Patterns
         run: |
