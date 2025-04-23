@@ -58,7 +58,7 @@ jobs:
             DOMAIN="${{ matrix.domain }}"
             OUTDIR="results/${DOMAIN}/urls"
             mkdir -p "$OUTDIR"
-            BLACKLIST_EXT=".css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
+            BLACKLIST_EXT=".js,.bak,.css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
       
             # Install URL enumeration tools
             go install github.com/tomnomnom/waybackurls@latest
@@ -90,7 +90,7 @@ jobs:
            
                # 6. Further clean with urless (drop blogs, JS libs, etc.) 
             cat "$OUTDIR/parameterized_urls.txt" \
-                | urless -nb -fk blog,article,news,bootstrap,jquery,captcha,node_modules -o "$OUTDIR/all_filtered.txt"    
+                | urless -nb -fk blog,article,static,asset,assets,news,bootstrap,jquery,captcha,node_modules -o "$OUTDIR/all_filtered.txt"    
 
               # count all filtered urls
             cat "$OUTDIR/all_filtered.txt" | wc -l
@@ -120,23 +120,7 @@ jobs:
           else
             echo "has_new_urls=false" >> $GITHUB_OUTPUT
           fi
-  
-      - name: Commit and push updated all_filtered.txt
-        if: steps.compare_urls.outputs.has_new_urls == 'true'
-        run: |
-          # 1) Configure Git identity
-          git config --global user.name  "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-  
-          # 2) Stage only the filtered file, never new_urls.txt
-          git add "results/${{ matrix.domain }}/urls/all_filtered.txt"
-  
-          # 3) Commit, or skip if unchanged
-          git commit -m "Update all_filtered for ${{ matrix.domain }}" || echo "No changes detected"
-  
-          # 4) Fast-forward pull & push  
-          git pull --rebase origin main || echo "Up to date"
-          git push || echo "Push failed or nothing to push"            
+        
 
       - name: Upload filtered URLs artifact
         uses: actions/upload-artifact@v4
