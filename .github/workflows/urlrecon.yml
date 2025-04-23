@@ -46,6 +46,11 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y curl git jq unzip
+
+      - name: Create Results Directory for ${{ matrix.domain }}
+        run: |
+           mkdir -p results/${{ matrix.domain }}
+           rm -f results/${{ matrix.domain }}/*.txt || true                 
           
       - name: URL Enumeration for ${{ matrix.domain }}
         run: |
@@ -129,11 +134,7 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
           
-      - name: Create Results Directory for ${{ matrix.domain }}
-        run: |
-           mkdir -p results/${{ matrix.domain }}
-           rm -f results/${{ matrix.domain }}/*.txt || true       
-           
+
       
       - name: Notify Discord of New URLs for ${{ matrix.domain }}
         if: steps.compare_urls.outputs.has_new_urls == 'true'
