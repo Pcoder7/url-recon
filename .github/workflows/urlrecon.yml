@@ -180,7 +180,7 @@ jobs:
               echo -e "🔔 New ${PAT^^} parameters for ${DOMAIN}\n📅 Date: ${DATE}" \
                 | notify -id fuzz
               # attach the findings file
-              notify -bulk -id fuzz -data "$FILE"
+              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color
             fi
           done
       
@@ -198,7 +198,7 @@ jobs:
               echo -e "🔔 New URLs for ${{ matrix.domain }}\n📅 Date: $DATE" \
                 | notify -id fuzz
               # file attachment
-              notify -bulk -id fuzz -data "$FILE"
+              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color
             else
               # bulk message
               {
