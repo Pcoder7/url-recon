@@ -100,7 +100,7 @@ jobs:
           cat <<EOF > ~/.config/notify/provider-config.yaml
               # Write provider config with our Discord webhook
           discord:
-            - id: "subscan"
+            - id: "fuzz"
               discord_channel: "subdomain-scan"
               discord_format: "{{data}}"
               discord_webhook_url: "${{ secrets.URLRECON_WEBHOOK }}"
@@ -133,9 +133,9 @@ jobs:
             if [ "$COUNT" -gt 50 ]; then
               # header message
               echo -e "🔔 New URLs for ${{ matrix.domain }}\n📅 Date: $DATE" \
-                | notify -id subscan
+                | notify -id fuzz
               # file attachment
-              notify -bulk -id subscan -data "$FILE"
+              notify -bulk -id fuzz -data "$FILE"
             else
               # bulk message
               {
@@ -143,6 +143,6 @@ jobs:
                 echo "📅 Date: $DATE"
                 echo
                 cat "$FILE"
-              } | notify -bulk -id subscan
+              } | notify -bulk -id fuzz
             fi
       
