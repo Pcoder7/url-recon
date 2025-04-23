@@ -1,0 +1,115 @@
+name: Url recon from waybackarchive & filtering
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Generate Matrix from domains.txt
+        id: set_matrix
+        run: |
+          if [ ! -f domains.txt ]; then
+            echo "domains.txt file not found!"
+            exit 1
+          fi
+          matrix=$(jq -R -s -c 'split("\n") | map(select(length > 0))' domains.txt)
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+  scan:
+    needs: generate_matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        domain: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Update & Install Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y curl git jq unzip     
+          
+      - name: URL Enumeration for ${{ matrix.domain }}
+        run: |
+            DOMAIN="${{ matrix.domain }}"
+            OUTDIR="results/${DOMAIN}/urls"
+            mkdir -p "$OUTDIR"
+      
+            # Install URL enumeration tools
+            go install github.com/tomnomnom/waybackurls@latest
+            go install github.com/lc/gau/v2/cmd/gau@latest
+            pip install waymore
+            pipx install uro
+      
+            # 1. Waybackurls: archived URLs
+            waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
+      
+            # 2. gau: combined source URLs, filter out images
+            gau --subs --blacklist png,jpg,gif --o "$OUTDIR/gau.txt" "$DOMAIN"
+      
+            # 3. waymore: deep crawl with archive mode U
+            waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
+      
+            # 4. Combine and dedupe all URL lists
+            cat "$OUTDIR/waybackurls.txt" "$OUTDIR/gau.txt" "$OUTDIR/waymore.txt" \
+                | sort -u > "$OUTDIR/all_urls.txt"
+      
+            # 5. Filter image and js extensions, then select only URLs with parameters
+            cat "$OUTDIR/all_urls.txt" \
+                | uro --filters hasparams -b jpg,png,gif,js,css,jpeg,bak -o "$OUTDIR/parameterized_urls.txt"
+      
+      # Compare & Alert on New URLs
+      - name: Compare & Alert on New URLs for ${{ matrix.domain }}
+        id: compare_urls
+        run: |
+            NEW="results/${{ matrix.domain }}/urls/parameterized_urls.txt"
+            OLD=$(mktemp)
+            git show HEAD:$NEW 2>/dev/null | sort -u > "$OLD" || touch "$OLD"
+            sort -u "$NEW" > "${NEW}.sorted"
+            comm -23 "${NEW}.sorted" "$OLD" > results/${{ matrix.domain }}/urls/new_urls.txt
+            if [ -s results/${{ matrix.domain }}/urls/new_urls.txt ]; then
+              echo "has_new_urls=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_new_urls=false" >> $GITHUB_OUTPUT
+            fi
+      
+      - name: Notify Discord of New URLs for ${{ matrix.domain }}
+        if: steps.compare_urls.outputs.has_new_urls == 'true'
+        run: |
+            DATE=$(date +"%d-%m-%Y")
+            FILE="results/${{ matrix.domain }}/urls/new_urls.txt"
+            COUNT=$(wc -l < "$FILE")
+      
+            # Send file if >50, else one bulk message
+            if [ "$COUNT" -gt 50 ]; then
+              # header message
+              echo -e "🔔 New URLs for ${{ matrix.domain }}\n📅 Date: $DATE" \
+                | notify -id subscan
+              # file attachment
+              notify -bulk -id subscan -data "$FILE"
+            else
+              # bulk message
+              {
+                echo "🔔 New URLs for ${{ matrix.domain }}"
+                echo "📅 Date: $DATE"
+                echo
+                cat "$FILE"
+              } | notify -bulk -id subscan
+            fi
+      
