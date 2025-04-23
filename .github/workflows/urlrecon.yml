@@ -191,7 +191,7 @@ jobs:
               } | notify -bulk -id fuzz
             fi
 
-            # ─── Notify Discord for each pattern if there are findings ─────────
+        # ─── Notify Discord for each pattern if there are findings ─────────
       - name: Notify Discord: vulnerability params for ${{ matrix.domain }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
@@ -200,7 +200,7 @@ jobs:
           DATE=$(date +"%d-%m-%Y")
           BASE="results/${DOMAIN}/urls"
 
-          # loop over each pattern's file
+           # loop over each pattern's file
           for PAT in ssrf sqli lfi debug_logic idor; do
             FILE="$BASE/${PAT}_params.txt"
             if [ -s "$FILE" ]; then
