@@ -1,0 +1,7 @@
+http://thecoalition.com/footer2.php?dom=thecoalition.com
+https://blog.thecoalition.com/assets/js/jquery.fitvids.js?v=020d421558
+https://platform.thecoalition.com/app/quote?filter=ARCHIVED
+https://platform.thecoalition.com/auth/login?redirect=%2Fapp%2Fresources
+https://platform.thecoalition.com/broker/quote?filter=ARCHIVED
+https://platform.thecoalition.com/login?mkt_tok=NTY2LUtXSi03ODQAAAGIzzywCR8ikmyvdKL7Bc7YvOFdslGmmZ2bo8g3-M1vLlGJ3zd3tPqzkQzj3tRJS88J3uSKEV6kmaawLH2XYiEqAxuM7JynY6wTydgMmg3MBQ
+https://platform.thecoalition.com/login?redirect=%2Fbroker%2Fresources
