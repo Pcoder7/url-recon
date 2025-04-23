@@ -50,6 +50,7 @@ jobs:
       - name: Create Results Directory for ${{ matrix.domain }}
         run: |
            mkdir -p results/${{ matrix.domain }}
+           rm -f results/${{ matrix.domain }}/urls/*.txt || true
              
           
       - name: URL Enumeration for ${{ matrix.domain }}
@@ -139,6 +140,7 @@ jobs:
       - name: Notify Discord of New URLs for ${{ matrix.domain }}
         if: steps.compare_urls.outputs.has_new_urls == 'true'
         run: |
+            DOMAIN="${{ matrix.domain }}"
             DATE=$(date +"%d-%m-%Y")
             FILE="results/${DOMAIN}/urls/new_urls.txt"
             COUNT=$(wc -l < "$FILE")
