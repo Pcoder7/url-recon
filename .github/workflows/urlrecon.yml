@@ -91,7 +91,7 @@ jobs:
               echo "has_new_urls=false" >> $GITHUB_OUTPUT
             fi
      
-       - name: Install notify
+      - name: Install notify
         env: 
           DISCORD_WEBHOOK: ${{ secrets.DIS_WEBHOOK }}
         run: |
