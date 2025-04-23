@@ -191,7 +191,7 @@ jobs:
               } | notify -bulk -id fuzz
             fi
 
-        # ─── Notify Discord for each pattern if there are findings ─────────
+            #  Notify Discord for each pattern if there are findings
       - name: Notify Discord: vulnerability params for ${{ matrix.domain }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
