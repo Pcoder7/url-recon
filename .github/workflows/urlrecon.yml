@@ -52,9 +52,7 @@ jobs:
             DOMAIN="${{ matrix.domain }}"
             OUTDIR="results/${DOMAIN}/urls"
             mkdir -p "$OUTDIR"
-            BLACKLIST_EXT=".css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,\
-                           .mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,\
-                           .tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
+            BLACKLIST_EXT=".css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
       
             # Install URL enumeration tools
             go install github.com/tomnomnom/waybackurls@latest
@@ -81,7 +79,7 @@ jobs:
                 | uro --filters hasparams -b "$BLACKLIST_EXT" -o "$OUTDIR/parameterized_urls.txt"
                 
            
-          # 6. Further clean with urless (drop blogs, JS libs, etc.) 
+               # 6. Further clean with urless (drop blogs, JS libs, etc.) 
             cat "$OUTDIR/parameterized_urls.txt" \
                 | urless -fk blog,article,news,bootstrap,jquery,captcha,node_modules \
                     -lang -nb \
