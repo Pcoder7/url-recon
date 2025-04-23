@@ -94,7 +94,21 @@ jobs:
 
               # count all filtered urls
             cat "$OUTDIR/all_filtered.txt" | wc -l
-            
+
+      # ─── Install gf & pattern files ──────────────────────────────────────
+      - name: Install gf and Gf-Patterns
+        run: |
+          # install gf CLI
+          go install github.com/tomnomnom/gf@latest
+          # pull down community JSONs
+          git clone https://github.com/1ndianl33t/Gf-Patterns.git
+          # prepare your ~/.gf dir and copy examples
+          mkdir -p ~/.gf
+          mv Gf-Patterns/*.json ~/.gf
+          # expose GF_PATH if needed
+          echo "GF_PATH=$HOME/.gf" >> $GITHUB_ENV
+
+      
       # Compare & Alert on New URLs
       - name: Compare & Alert on New URLs for ${{ matrix.domain }}
         id: compare_urls
@@ -109,6 +123,21 @@ jobs:
             else
               echo "has_new_urls=false" >> $GITHUB_OUTPUT
             fi
+
+      # ─── Extract vulnerability parameters via gf ─────────────────────────
+      - name: Extract SSRF, sqli, lfi, debug_logic & idor parameters
+        run: |
+          DOMAIN="${{ matrix.domain }}"
+          BASE="results/${{ matrix.domain }}/urls"
+          INPUT="$BASE/new_urls.txt
+          "
+
+          # produce one file per pattern
+          cat "$INPUT" | gf ssrf          > "$BASE/ssrf_params.txt"
+          cat "$INPUT" | gf sqli          > "$BASE/sqli_params.txt"
+          cat "$INPUT" | gf lfi           > "$BASE/lfi_params.txt"
+          cat "$INPUT" | gf debug_logic   > "$BASE/debug_logic_params.txt"
+          cat "$INPUT" | gf idor          > "$BASE/idor_params.txt"      
      
       - name: Install notify
         env: 
@@ -161,4 +190,24 @@ jobs:
                 cat "$FILE"
               } | notify -bulk -id fuzz
             fi
-      
+
+            # ─── Notify Discord for each pattern if there are findings ─────────
+      - name: Notify Discord: vulnerability params for ${{ matrix.domain }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
+        run: |
+          DOMAIN="${{ matrix.domain }}"
+          DATE=$(date +"%d-%m-%Y")
+          BASE="results/${DOMAIN}/urls"
+
+          # loop over each pattern's file
+          for PAT in ssrf sqli lfi debug_logic idor; do
+            FILE="$BASE/${PAT}_params.txt"
+            if [ -s "$FILE" ]; then
+              # header for this pattern
+              echo -e "🔔 New ${PAT^^} parameters for ${DOMAIN}\n📅 Date: ${DATE}" \
+                | notify -id fuzz
+              # attach the findings file
+              notify -bulk -id fuzz -data "$FILE"
+            fi
+          done
