@@ -83,7 +83,7 @@ jobs:
            
           # 6. Further clean with urless (drop blogs, JS libs, etc.) 
             cat "$OUTDIR/parameterized_urls.txt" \
-            | urless -fk blog,article,news,bootstrap,jquery,captcha,node_modules \
+                | urless -fk blog,article,news,bootstrap,jquery,captcha,node_modules \
                     -lang -nb \
                     -o "$OUTDIR/all_filtered.txt"    
       
