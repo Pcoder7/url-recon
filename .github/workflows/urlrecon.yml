@@ -152,22 +152,7 @@ jobs:
           echo "GF_PATH=$HOME/.gf" >> $GITHUB_ENV
 
       
-      # Compare & Alert on New URLs
-      - name: Compare & Alert on New URLs for ${{ matrix.domain }}
-        id: compare_urls
-        run: |
-            NEW="results/${{ matrix.domain }}/urls/all_filtered.txt"
-            OLD=$(mktemp)
-            git show HEAD:$NEW 2>/dev/null | sort -u > "$OLD" || touch "$OLD"
-            sort -u "$NEW" > "${NEW}.sorted"
-            comm -23 "${NEW}.sorted" "$OLD" > results/${{ matrix.domain }}/urls/new_urls.txt
-            if [ -s results/${{ matrix.domain }}/urls/new_urls.txt ]; then
-              echo "has_new_urls=true" >> $GITHUB_OUTPUT
-            else
-              echo "has_new_urls=false" >> $GITHUB_OUTPUT
-            fi
-
-      # ─── Extract vulnerability parameters via gf ─────────────────────────
+        # ─── Extract vulnerability parameters via gf ─────────────────────────
       - name: Extract SSRF, sqli, lfi, debug_logic & idor parameters
         run: |
           DOMAIN="${{ matrix.domain }}"
