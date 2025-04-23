@@ -95,6 +95,49 @@ jobs:
               # count all filtered urls
             cat "$OUTDIR/all_filtered.txt" | wc -l
 
+       # … after your extraction steps …
+  
+      - name: Compare against last run via Git HEAD
+        id: compare_urls
+        run: |
+          DOMAIN="${{ matrix.domain }}"
+          BASE="results/${DOMAIN}/urls"
+          NEW_FILE="$BASE/all_filtered.txt"
+          PREV=$(mktemp)
+  
+          # 1) Grab the previous version of all_filtered.txt from HEAD (if it exists)
+          git show HEAD:"$NEW_FILE" 2>/dev/null | sort -u > "$PREV" || touch "$PREV"
+  
+          # 2) Sort today's version
+          sort -u "$NEW_FILE" > "${NEW_FILE}.sorted"
+  
+          # 3) Lines in today's sorted file not in the previous = truly new URLs
+          comm -23 "${NEW_FILE}.sorted" "$PREV" > "$BASE/new_urls.txt"
+  
+          # 4) Set a GitHub Actions output flag
+          if [ -s "$BASE/new_urls.txt" ]; then
+            echo "has_new_urls=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_new_urls=false" >> $GITHUB_OUTPUT
+          fi
+  
+      - name: Commit and push updated all_filtered.txt
+        if: steps.compare_urls.outputs.has_new_urls == 'true'
+        run: |
+          # 1) Configure Git identity
+          git config --global user.name  "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+  
+          # 2) Stage only the filtered file, never new_urls.txt
+          git add "results/${{ matrix.domain }}/urls/all_filtered.txt"
+  
+          # 3) Commit, or skip if unchanged
+          git commit -m "Update all_filtered for ${{ matrix.domain }}" || echo "No changes detected"
+  
+          # 4) Fast-forward pull & push  
+          git pull --rebase origin main || echo "Up to date"
+          git push || echo "Push failed or nothing to push"            
+
       # ─── Install gf & pattern files ──────────────────────────────────────
       - name: Install gf and Gf-Patterns
         run: |
