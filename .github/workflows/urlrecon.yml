@@ -73,6 +73,9 @@ jobs:
             # 4. Combine and dedupe all URL lists
             cat "$OUTDIR/waybackurls.txt" "$OUTDIR/gau.txt" "$OUTDIR/waymore.txt" \
                 | sort -u > "$OUTDIR/all_urls.txt"
+             
+             # count all urls
+            cat "$OUTDIR/all_urls.txt" | wc -l
       
             # 5. Filter image and js extensions, then select only URLs with parameters
             cat "$OUTDIR/all_urls.txt" \
@@ -84,7 +87,10 @@ jobs:
                 | urless -fk blog,article,news,bootstrap,jquery,captcha,node_modules \
                     -lang -nb \
                     -o "$OUTDIR/all_filtered.txt"    
-      
+
+              # count all filtered urls
+            cat "$OUTDIR/all_filtered.txt" | wc -l
+            
       # Compare & Alert on New URLs
       - name: Compare & Alert on New URLs for ${{ matrix.domain }}
         id: compare_urls
