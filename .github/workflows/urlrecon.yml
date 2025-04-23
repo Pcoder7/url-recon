@@ -88,6 +88,37 @@ jobs:
             else
               echo "has_new_urls=false" >> $GITHUB_OUTPUT
             fi
+     
+       - name: Install notify
+        env: 
+          DISCORD_WEBHOOK: ${{ secrets.DIS_WEBHOOK }}
+        run: |
+          go install -v github.com/projectdiscovery/notify/cmd/notify@latest
+          mkdir -p ~/.config/notify/
+          cat <<EOF > ~/.config/notify/provider-config.yaml
+              # Write provider config with our Discord webhook
+          discord:
+            - id: "subscan"
+              discord_channel: "subdomain-scan"
+              discord_format: "{{data}}"
+              discord_webhook_url: "${{ secrets.DIS_WEBHOOK }}"
+          EOF
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+          # display and show provider-config.yaml file
+          cat ~/.config/notify/provider-config.yaml  
+
+      - name: Show notify config
+        run: | 
+          echo "$DIS_WEBHOOK"
+          sed -e 's/.*/&/' ~/.config/notify/provider-config.yaml
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DIS_WEBHOOK }}
+          
+      - name: Create Results Directory for ${{ matrix.domain }}
+        run: |
+           mkdir -p results/${{ matrix.domain }}
+           rm -f results/${{ matrix.domain }}/*.txt || true       
+           
       
       - name: Notify Discord of New URLs for ${{ matrix.domain }}
         if: steps.compare_urls.outputs.has_new_urls == 'true'
