@@ -93,7 +93,7 @@ jobs:
      
       - name: Install notify
         env: 
-          DISCORD_WEBHOOK: ${{ secrets.DIS_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
         run: |
           go install -v github.com/projectdiscovery/notify/cmd/notify@latest
           mkdir -p ~/.config/notify/
@@ -103,7 +103,7 @@ jobs:
             - id: "subscan"
               discord_channel: "subdomain-scan"
               discord_format: "{{data}}"
-              discord_webhook_url: "${{ secrets.DIS_WEBHOOK }}"
+              discord_webhook_url: "${{ secrets.URLRECON_WEBHOOK }}"
           EOF
           echo "$HOME/go/bin" >> $GITHUB_PATH
           # display and show provider-config.yaml file
@@ -111,10 +111,10 @@ jobs:
 
       - name: Show notify config
         run: | 
-          echo "$DIS_WEBHOOK"
+          echo "$URLRECON_WEBHOOK"
           sed -e 's/.*/&/' ~/.config/notify/provider-config.yaml
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DIS_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
           
       - name: Create Results Directory for ${{ matrix.domain }}
         run: |
