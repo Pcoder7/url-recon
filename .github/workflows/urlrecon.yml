@@ -164,7 +164,7 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
           
             #  Notify Discord for each pattern if there are findings
-      - name: Notify Discord: vulnerability params for ${{ matrix.domain }}
+      - name: Notify Discord vulnerability params for ${{ matrix.domain }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.URLRECON_WEBHOOK }}
         run: |
