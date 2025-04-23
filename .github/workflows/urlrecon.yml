@@ -129,8 +129,7 @@ jobs:
         run: |
           DOMAIN="${{ matrix.domain }}"
           BASE="results/${{ matrix.domain }}/urls"
-          INPUT="$BASE/new_urls.txt
-          "
+          INPUT="$BASE/new_urls.txt"
 
           # produce one file per pattern
           cat "$INPUT" | gf ssrf          > "$BASE/ssrf_params.txt"
