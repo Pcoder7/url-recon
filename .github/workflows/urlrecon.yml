@@ -101,7 +101,7 @@ jobs:
                --skip-grepping --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" --timeout 30 --no-spinner \
                --no-color --debug -o "$OUTDIR/$DOMAIN-dalfoxlog.txt"
 
-            cat "$OUTDIR/$DOMAIN-dalfoxlog.txt" |grep -A 1 'Reflected .* param =>' --color=never |  anew -q "$OUTDIR/$DOMAIN-dalfox.txt"    
+            cat "$OUTDIR/$DOMAIN-dalfoxlog.txt" |head -n50 |grep -A 1 'Reflected .* param =>' --color=never |  anew -q "$OUTDIR/$DOMAIN-dalfox.txt"    
 
        # … after your extraction steps …
   
