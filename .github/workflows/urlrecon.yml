@@ -97,8 +97,8 @@ jobs:
               # count all filtered urls
             cat "$OUTDIR/all_filtered.txt" | wc -l
 
-            cat "$OUTDIR/all_filtered.txt" | dalfox pipe --skip-grepping --skip-bav --skip-mining-all --skip-mining-dict --skip-mining-dom --skip-xss-scanning --skip-headless --only-discovery \
-               --skip-grepping --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" --timeout 30 --no-spinner \
+            cat "$OUTDIR/all_filtered.txt" | dalfox pipe --skip-grepping  --skip-bav --skip-mining-all --skip-mining-dict --skip-mining-dom --skip-xss-scanning --skip-headless --only-discovery \
+               --skip-grepping --worker 30 --max-cpu 2 --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" --timeout 30 --no-spinner \
                --no-color --debug -o "$OUTDIR/$DOMAIN-dalfoxlog.txt"
 
             cat "$OUTDIR/$DOMAIN-dalfoxlog.txt" |grep -A 1 'Reflected .* param =>' --color=never |  anew -q "$OUTDIR/$DOMAIN-dalfox.txt"    
@@ -134,7 +134,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: filtered-urls-${{ matrix.domain }}
-          path: results/${{ matrix.domain }}/urls/all_filtered.txt
+          path: results/${{ matrix.domain }}/urls/$DOMAIN-dalfoxlog.txt
           retention-days: 4
 
       # ─── Install gf & pattern files ──────────────────────────────────────
