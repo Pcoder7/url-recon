@@ -70,13 +70,13 @@ jobs:
             pipx install uro
       
             # 1. Waybackurls: archived URLs
-          #  waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
+            #  waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
       
             # 2. gau: combined source URLs, filter out images
             gau --subs  --providers wayback,commoncrawl --o "$OUTDIR/gau.txt" "$DOMAIN"
       
             # 3. waymore: deep crawl with archive mode U
-          #  waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
+             #  waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
       
             # 4. Combine and dedupe all URL lists
             cat "$OUTDIR/waybackurls.txt" "$OUTDIR/gau.txt" "$OUTDIR/waymore.txt" \
