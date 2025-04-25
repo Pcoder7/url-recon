@@ -70,13 +70,13 @@ jobs:
             pipx install uro
       
             # 1. Waybackurls: archived URLs
-            waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
+          #  waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
       
             # 2. gau: combined source URLs, filter out images
-            gau --subs --blacklist "$BLACKLIST_EXT" --providers wayback,commoncrawl,otx --o "$OUTDIR/gau.txt" "$DOMAIN"
+            gau --subs  --providers wayback,commoncrawl --o "$OUTDIR/gau.txt" "$DOMAIN"
       
             # 3. waymore: deep crawl with archive mode U
-            waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
+          #  waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
       
             # 4. Combine and dedupe all URL lists
             cat "$OUTDIR/waybackurls.txt" "$OUTDIR/gau.txt" "$OUTDIR/waymore.txt" \
@@ -87,12 +87,12 @@ jobs:
       
             # 5. Filter image and js extensions, then select only URLs with parameters
             cat "$OUTDIR/all_urls.txt" \
-                | uro --filters hasparams -b "$BLACKLIST_EXT" -o "$OUTDIR/parameterized_urls.txt"
+                | uro --filters hasparams -o "$OUTDIR/parameterized_urls.txt"
                 
            
                # 6. Further clean with urless (drop blogs, JS libs, etc.) 
             cat "$OUTDIR/parameterized_urls.txt" \
-                | urless -nb -fk blog,article,static,asset,assets,news,bootstrap,jquery,captcha,node_modules -o "$OUTDIR/all_filtered.txt"    
+                | urless -nb -fe "$BLACKLIST_EXT" -fk blog,article,static,asset,assets,news,bootstrap,jquery,captcha,node_modules -o "$OUTDIR/all_filtered.txt"    
 
               # count all filtered urls
             cat "$OUTDIR/all_filtered.txt" | wc -l
@@ -101,7 +101,7 @@ jobs:
                --skip-grepping --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" --timeout 30 --no-spinner \
                --no-color --debug -o "$OUTDIR/$DOMAIN-dalfoxlog.txt"
 
-            cat "$OUTDIR/$DOMAIN-dalfoxlog.txt" |head -n50 |grep -A 1 'Reflected .* param =>' --color=never |  anew -q "$OUTDIR/$DOMAIN-dalfox.txt"    
+            cat "$OUTDIR/$DOMAIN-dalfoxlog.txt" |grep -A 1 'Reflected .* param =>' --color=never |  anew -q "$OUTDIR/$DOMAIN-dalfox.txt"    
 
        # … after your extraction steps …
   
