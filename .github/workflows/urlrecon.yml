@@ -66,7 +66,9 @@ jobs:
           sudo apt-get install -y curl git jq unzip
 
       - name: Download modules
-        run: go mod download
+        run: |
+          go env GOMOD
+          go mod download
 
       - name: Build binary
         run: |
