@@ -46,6 +46,39 @@ jobs:
           find . -type f -name 'go.mod' -o -name 'go.sum' || true
           go env GOMOD || true
 
+      - name: Ensure go.mod exists (auto-init if missing)
+        run: |
+          if [ -f go.mod ]; then
+            echo "go.mod exists at repo root"
+            go env GOMOD
+          else
+            echo "go.mod not found — attempting to init module from git remote"
+            origin=$(git config --get remote.origin.url || true)
+            if [ -z "$origin" ]; then
+              modpath="example.com/temp/module"
+              echo "no git remote found; using temporary module path: $modpath"
+            else
+              # convert git@github.com:owner/repo.git -> https://github.com/owner/repo
+              modpath=$(echo "$origin" \
+                | sed -E 's#^git@([^:]+):#https://\1/#' \
+                | sed -E 's#^ssh://##' \
+                | sed -E 's#^https?://##' \
+                | sed -E 's#\.git$##' \
+                | sed -E 's#^#https://#')
+              # sanitize resulting URL (make it module path form)
+              modpath=$(echo "$modpath" | sed -E 's#https?://##')
+              echo "derived module path: $modpath"
+            fi
+
+            # init module and tidy (may add go.sum)
+            go mod init "$modpath"
+            # tidy to populate go.sum (can fail if imports unreachable)
+            go mod tidy || true
+            echo "Created go.mod; CI will proceed but please commit go.mod/go.sum to repo for reproducible builds."
+            go env GOMOD || true
+          fi
+          
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
