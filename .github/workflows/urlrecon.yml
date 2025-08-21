@@ -41,12 +41,39 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+
+      - name: Download modules
+        run: go mod download
+
+      - name: Build binary
+        run: |
+          mkdir -p bin
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+          
       
       - name: Update & Install Dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y curl git jq unzip
 
+      - name: Download modules
+        run: go mod download
+
+      - name: Build binary
+        run: |
+          
+          go build -o spiderkxss main.go
+          ./spiderkxss --help
+        
       - name: Create Results Directory for ${{ matrix.domain }}
         run: |
            mkdir -p results/${{ matrix.domain }}
@@ -59,8 +86,6 @@ jobs:
             OUTDIR="results/${DOMAIN}/urls"
             mkdir -p "$OUTDIR"
             BLACKLIST_EXT=".js,.bak,.css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
-      
-            # Install URL enumeration tools
             go install github.com/tomnomnom/waybackurls@latest
             go install github.com/lc/gau/v2/cmd/gau@latest
             go install github.com/hahwul/dalfox/v2@latest
