@@ -124,7 +124,9 @@ jobs:
             OUTDIR="results/${DOMAIN}/urls"
             mkdir -p "$OUTDIR"
             BLACKLIST_EXT=".js,.bak,.css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
+            URO_BLACKLIST="css ico jpg jpeg png bmp svg img gif mp4 flv ogv webm webp mov mp3 m4a m4p scss tif tiff ttf otf woff woff2 bmp ico eot htc rtf swf image js"
             go install github.com/tomnomnom/waybackurls@latest
+            go install github.com/rix4uni/uforall@latest
             go install github.com/lc/gau/v2/cmd/gau@latest
             go install github.com/hahwul/dalfox/v2@latest
             go install -v github.com/tomnomnom/anew@latest
@@ -138,12 +140,14 @@ jobs:
       
             # 2. gau: combined source URLs, filter out images
             gau --subs  --providers wayback,commoncrawl --o "$OUTDIR/gau.txt" "$DOMAIN"
+
+            cat "$DOMAIN" | uforall -t archive -silent | anew -q "$OUTDIR/uforall.txt"
       
             # 3. waymore: deep crawl with archive mode U
              #  waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
       
             # 4. Combine and dedupe all URL lists
-            cat "$OUTDIR/waybackurls.txt" "$OUTDIR/gau.txt" "$OUTDIR/waymore.txt" \
+            cat "$OUTDIR/waybackurls.txt" "$OUTDIR/uforall.txt" "$OUTDIR/gau.txt" "$OUTDIR/waymore.txt" \
                 | sort -u > "$OUTDIR/all_urls.txt"
              
              # count all urls
@@ -151,7 +155,7 @@ jobs:
       
             # 5. Filter image and js extensions, then select only URLs with parameters
             cat "$OUTDIR/all_urls.txt" \
-                | uro --filters hasparams -o "$OUTDIR/parameterized_urls.txt"
+                | uro -b "$URO_BLACKLIST" --filters hasparams -o "$OUTDIR/parameterized_urls.txt"
                 
            
                # 6. Further clean with urless (drop blogs, JS libs, etc.) 
@@ -164,7 +168,7 @@ jobs:
             #cat "$OUTDIR/all_filtered.txt" | dalfox pipe --skip-grepping  --skip-bav --skip-mining-all --skip-mining-dict --skip-mining-dom --skip-xss-scanning --skip-headless --only-discovery \
              #  --skip-grepping --worker 30 --max-cpu 2 --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" --timeout 30 --no-spinner \
               # --no-color --debug -o "$OUTDIR/$DOMAIN-dalfoxlog.txt"
-            cat "$OUTDIR/all_filtered.txt" | ./spiderkxss -c 40  -d 0.2-0.5 --debug  | anew "$OUTDIR/$DOMAIN-dalfox.txt"
+            cat "$OUTDIR/all_filtered.txt" | ./spiderkxss -c 40  -d 0.2-0.5 --debug  | anew  -q "$OUTDIR/$DOMAIN-dalfox.txt"
            # cat "$OUTDIR/$DOMAIN-dalfoxlog.txt" |grep -A 1 'Reflected .* param =>' --color=never |  anew -q "$OUTDIR/$DOMAIN-dalfox.txt"    
 
        # … after your extraction steps …
@@ -198,7 +202,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: filtered-urls-${{ matrix.domain }}
-          path: results/${{ matrix.domain }}/urls/$DOMAIN-dalfoxlog.txt
+          path: results/${{ matrix.domain }}/urls/$DOMAIN-dalfox.txt
           retention-days: 1
 
       # ─── Install gf & pattern files ──────────────────────────────────────
