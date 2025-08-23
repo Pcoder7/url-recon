@@ -116,7 +116,14 @@ jobs:
         run: |
            mkdir -p results/${{ matrix.domain }}
            rm -f results/${{ matrix.domain }}/urls/*.txt || true
-             
+
+      - name: Install uforall
+        run: |
+           wget https://github.com/rix4uni/uforall/releases/download/v0.0.2/uforall-linux-amd64-0.0.2.tgz
+           tar -xvzf uforall-linux-amd64-0.0.2.tgz
+           rm -rf uforall-linux-amd64-0.0.2.tgz
+           mv uforall ~/go/bin/uforall
+           echo $GOPATH
           
       - name: URL Enumeration for ${{ matrix.domain }}
         run: |
@@ -126,7 +133,6 @@ jobs:
             BLACKLIST_EXT=".js,.bak,.css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
             URO_BLACKLIST="css ico jpg jpeg png bmp svg img gif mp4 flv ogv webm webp mov mp3 m4a m4p scss tif tiff ttf otf woff woff2 bmp ico eot htc rtf swf image js"
             go install github.com/tomnomnom/waybackurls@latest
-            go install github.com/rix4uni/uforall@latest
             go install github.com/lc/gau/v2/cmd/gau@latest
             go install github.com/hahwul/dalfox/v2@latest
             go install -v github.com/tomnomnom/anew@latest
@@ -135,9 +141,13 @@ jobs:
             pip install urless
             pipx install uro
       
+
+      - name: Create Results Directory for ${{ matrix.domain }}
+        run: |
+
             # 1. Waybackurls: archived URLs
             #  waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
-      
+            
             # 2. gau: combined source URLs, filter out images
             gau --subs  --providers wayback,commoncrawl --o "$OUTDIR/gau.txt" "$DOMAIN"
 
