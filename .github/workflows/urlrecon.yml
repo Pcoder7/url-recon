@@ -178,7 +178,7 @@ jobs:
             #cat "$OUTDIR/all_filtered.txt" | dalfox pipe --skip-grepping  --skip-bav --skip-mining-all --skip-mining-dict --skip-mining-dom --skip-xss-scanning --skip-headless --only-discovery \
              #  --skip-grepping --worker 30 --max-cpu 2 --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" --timeout 30 --no-spinner \
               # --no-color --debug -o "$OUTDIR/$DOMAIN-dalfoxlog.txt"
-            cat "$OUTDIR/all_filtered.txt" | ./spiderkxss -c 40  -d 0.2-0.5 --debug  | anew  -q "$OUTDIR/$DOMAIN-dalfox.txt"
+            cat "$OUTDIR/all_filtered.txt" | ./spiderkxss -c 40 -d 0.3-0.7 --debug --rotate-agent 5-10 --ua-file user-agents.txt  | anew  -q "$OUTDIR/$DOMAIN-dalfox.txt"
            # cat "$OUTDIR/$DOMAIN-dalfoxlog.txt" |grep -A 1 'Reflected .* param =>' --color=never |  anew -q "$OUTDIR/$DOMAIN-dalfox.txt"    
 
        # … after your extraction steps …
