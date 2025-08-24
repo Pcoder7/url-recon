@@ -289,9 +289,9 @@ jobs:
             if [ -s "$FILE" ]; then
               # header for this pattern
               echo -e "🔔 New ${PAT^^} parameters for ${DOMAIN}\n📅 Date: ${DATE}" \
-                | notify -id fuzz
+                | notify -id fuzz -no-color -silent
               # attach the findings file
-              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color
+              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color -silent
             fi
           done
       
@@ -307,7 +307,7 @@ jobs:
             if [ "$COUNT" -gt 50 ]; then
               # header message
               echo -e "🔔 New URLs for ${{ matrix.domain }}\n📅 Date: $DATE" \
-                | notify -id fuzz
+                | notify -id fuzz -no-color -silent
               # file attachment
               notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color -silent
             else
@@ -317,7 +317,7 @@ jobs:
                 echo "📅 Date: $DATE"
                 echo
                 cat "$FILE"
-              } | notify -bulk -id fuzz
+              } | notify -bulk -id fuzz -no-color -silent
             fi
 
       - name: Notify Discord of Dalfox scan for ${{ matrix.domain }}
@@ -333,7 +333,7 @@ jobs:
             if [ "$COUNT" -gt 50 ]; then
               # header message
               echo -e "🔔 New URLs for ${{ matrix.domain }}\n📅 Date: $DATE" \
-                | notify -id fuzz
+                | notify -id fuzz -no-color -silent
               # file attachment
               notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color -silent
             else
@@ -343,6 +343,6 @@ jobs:
                 echo "📅 Date: $DATE"
                 echo
                 cat "$FILE"
-              } | notify -bulk -id fuzz
+              } | notify -bulk -id fuzz -no-color -silent
             fi
 
