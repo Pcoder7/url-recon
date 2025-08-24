@@ -125,13 +125,9 @@ jobs:
            mv uforall ~/go/bin/uforall
            echo $GOPATH
           
-      - name: URL Enumeration for ${{ matrix.domain }}
+      - name: Install Tools
         run: |
-            DOMAIN="${{ matrix.domain }}"
-            OUTDIR="results/${DOMAIN}/urls"
-            mkdir -p "$OUTDIR"
-            BLACKLIST_EXT=".js,.bak,.css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
-            URO_BLACKLIST="css ico jpg jpeg png bmp svg img gif mp4 flv ogv webm webp mov mp3 m4a m4p scss tif tiff ttf otf woff woff2 bmp ico eot htc rtf swf image js"
+
             go install github.com/tomnomnom/waybackurls@latest
             go install github.com/lc/gau/v2/cmd/gau@latest
             go install github.com/hahwul/dalfox/v2@latest
@@ -142,9 +138,14 @@ jobs:
             pipx install uro
       
 
-      - name: Create Results Directory for ${{ matrix.domain }}
+      - name: URL Enumeration 
         run: |
-
+            
+            DOMAIN="${{ matrix.domain }}"
+            OUTDIR="results/${DOMAIN}/urls"
+            mkdir -p "$OUTDIR"
+            BLACKLIST_EXT=".js,.bak,.css,.ico,.jpg,.jpeg,.png,.bmp,.svg,.img,.gif,.mp4,.flv,.ogv,.webm,.webp,.mov,.mp3,.m4a,.m4p,.scss,.tif,.tiff,.ttf,.otf,.woff,.woff2,.bmp,.ico,.eot,.htc,.rtf,.swf,.image"
+            URO_BLACKLIST="css ico jpg jpeg png bmp svg img gif mp4 flv ogv webm webp mov mp3 m4a m4p scss tif tiff ttf otf woff woff2 bmp ico eot htc rtf swf image js"
             # 1. Waybackurls: archived URLs
             #  waybackurls "$DOMAIN" > "$OUTDIR/waybackurls.txt"
             
@@ -161,8 +162,10 @@ jobs:
                 | sort -u > "$OUTDIR/all_urls.txt"
              
              # count all urls
+            echo "=========== Count All Urls ========="
             cat "$OUTDIR/all_urls.txt" | wc -l
-      
+            
+            echo "======================================="
             # 5. Filter image and js extensions, then select only URLs with parameters
             cat "$OUTDIR/all_urls.txt" \
                 | uro -b "$URO_BLACKLIST" --filters hasparams -o "$OUTDIR/parameterized_urls.txt"
@@ -172,8 +175,11 @@ jobs:
             cat "$OUTDIR/parameterized_urls.txt" \
                 | urless -nb -fe "$BLACKLIST_EXT" -fk blog,article,static,asset,assets,news,bootstrap,jquery,captcha,node_modules -o "$OUTDIR/all_filtered.txt"    
 
+            echo "=========== Count Filtered Urls Only ========="
               # count all filtered urls
             cat "$OUTDIR/all_filtered.txt" | wc -l
+
+            echo "======================================="
 
             #cat "$OUTDIR/all_filtered.txt" | dalfox pipe --skip-grepping  --skip-bav --skip-mining-all --skip-mining-dict --skip-mining-dom --skip-xss-scanning --skip-headless --only-discovery \
              #  --skip-grepping --worker 30 --max-cpu 2 --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0" --timeout 30 --no-spinner \
@@ -234,7 +240,7 @@ jobs:
         run: |
           DOMAIN="${{ matrix.domain }}"
           BASE="results/${{ matrix.domain }}/urls"
-          INPUT="$BASE/new_urls.txt"
+          INPUT="$BASE/all_filtered.txt"
 
           # produce one file per pattern
           cat "$INPUT" | gf ssrf          > "$BASE/ssrf_params.txt"
@@ -303,7 +309,7 @@ jobs:
               echo -e "🔔 New URLs for ${{ matrix.domain }}\n📅 Date: $DATE" \
                 | notify -id fuzz
               # file attachment
-              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color
+              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color -silent
             else
               # bulk message
               {
@@ -329,7 +335,7 @@ jobs:
               echo -e "🔔 New URLs for ${{ matrix.domain }}\n📅 Date: $DATE" \
                 | notify -id fuzz
               # file attachment
-              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color
+              notify -bulk -id fuzz -data "$FILE" -char-limit 1000000 -no-color -silent
             else
               # bulk message
               {
