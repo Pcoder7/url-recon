@@ -152,7 +152,7 @@ jobs:
             # 2. gau: combined source URLs, filter out images
             gau --subs  --providers wayback,commoncrawl --o "$OUTDIR/gau.txt" "$DOMAIN"
 
-            cat "$DOMAIN" | uforall -t archive -silent | anew -q "$OUTDIR/uforall.txt"
+            echo "$DOMAIN" | uforall -t archive -silent | anew -q "$OUTDIR/uforall.txt"
       
             # 3. waymore: deep crawl with archive mode U
              #  waymore -i "$DOMAIN" -mode U -oU "$OUTDIR/waymore.txt"
